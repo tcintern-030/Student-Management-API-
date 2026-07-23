@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from students import Student
 
 app = FastAPI()
@@ -45,14 +45,18 @@ def get_student(student_id: int):
         if student.id == student_id:
             return student
 
-    return {"message": "Student not found"}
+    raise HTTPException(status_code=404, detail="Student not found")
 
 @app.post("/students")
 def add_student(student: Student):
+    for s in students:
+        if s.id == student.id:
+            raise HTTPException(status_code=400, detail="Student with this ID already exists")
 
     students.append(student)
 
-    return { "message": "Student added successfully"}
+    return {"message": "Student added successfully"}
+
 
 @app.put("/students")
 def update_student(id: int, name: str, age: int, course: str):
@@ -64,14 +68,14 @@ def update_student(id: int, name: str, age: int, course: str):
 
             return {"message": "Student updated successfully"}
 
-    return {"message": "Student not found"}
+    raise HTTPException(status_code=404, detail="Student not found")
 
 @app.delete("/students/{student_id}")
 def delete_student(student_id: int):
     for student in students:
         if student.id == student_id:
             students.remove(student)
-            
+
             return {"message": "Student deleted successfully"}
 
-    return {"message": "Student not found"}
+    raise HTTPException(status_code=404, detail="Student not found")
